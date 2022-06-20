@@ -1,0 +1,69 @@
+<launch>
+    <arg name="squares_x" default="4" />
+    <arg name="squares_y" default="3" />
+    <arg name="square_length" default="0.085" />
+    <arg name="marker_length" default="0.066" />
+    <arg name="dictionary_id" default="0" />
+    <arg name="number_of_bits_for_markers_sides" default="1" />
+
+    <arg name="debug_tf" default="false" />
+
+    <!-- Monitor Camera pose detector -->
+    <include file="$(find charuco_detector)/launch/charuco_detector.launch">
+        <arg name="image_topic" value="/monitor_camera/image_raw" />
+        <arg name="camera_info_topic" value="/monitor_camera/camera_info" />
+
+        <arg name="config_file" value="$(find trinity_calibration)/config/monitor_camera_params.yaml" />
+        <arg name="charuco_tf_frame" value="monitor_camera_color_optical_frame" />
+        <arg name="sensor_frame_override" value="monitor_camera_target" />
+
+        <arg name="number_of_squares_in_x" value="$(arg squares_x)" />
+        <arg name="number_of_squares_in_y" value="$(arg squares_y)" />
+        <arg name="squares_sides_size_in_meters" value="$(arg square_length)" />
+        <arg name="markers_sides_size_in_meters" value="$(arg marker_length)" />
+        <arg name="dictionary_id" value="$(arg dictionary_id)" />
+        <arg name="number_of_bits_for_markers_sides" value="$(arg number_of_bits_for_markers_sides)" />
+        <arg name="use_dynamic_range" value="false" />
+        <arg name="use_clahe" value="false" />
+        <arg name="use_median_blur" value="false" />
+
+        <arg name="use_static_tf_broadcaster" value="true" />
+        <arg name="tf_broadcaster_republish_rate" value="100" />
+    </include>
+
+    <!-- Rods Camera pose detector -->
+    <include file="$(find charuco_detector)/launch/charuco_detector.launch">
+        <arg name="image_topic" value="/rods_camera/image_raw" />
+        <arg name="camera_info_topic" value="/rods_camera/camera_info" />
+
+        <arg name="config_file" value="$(find trinity_calibration)/config/rods_camera_params.yaml" />
+        <arg name="charuco_tf_frame" value="rods_camera_target" />
+        <arg name="sensor_frame_override" value="rods_camera_color_optical_frame" />
+
+        <arg name="number_of_squares_in_x" value="$(arg squares_x)" />
+        <arg name="number_of_squares_in_y" value="$(arg squares_y)" />
+        <arg name="squares_sides_size_in_meters" value="$(arg square_length)" />
+        <arg name="markers_sides_size_in_meters" value="$(arg marker_length)" />
+        <arg name="dictionary_id" value="$(arg dictionary_id)" />
+        <arg name="number_of_bits_for_markers_sides" value="$(arg number_of_bits_for_markers_sides)" />
+        <arg name="use_dynamic_range" value="false" />
+        <arg name="use_clahe" value="false" />
+        <arg name="use_median_blur" value="false" />
+
+        <arg name="use_static_tf_broadcaster" value="true" />
+        <arg name="tf_broadcaster_republish_rate" value="100" />
+    </include>
+
+    <!-- RViz -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find trinity_calibration)/config/trinity_calibration.rviz" />
+
+    <!-- static_transform_publisher: the two detected targets are in the same position -->
+    <node pkg="tf" type="static_transform_publisher" name="targets_broadcaster" args="0 0 0 0 0 0 rods_camera_target monitor_camera_target 100" />
+
+    <!-- Debug TF publishers -->
+    <group if="$(arg debug_tf)">
+        <node pkg="tf" type="static_transform_publisher" name="robot_broadcaster" args="0.05 0.1 0.1 0 0 0 robot_base_link rods_camera_color_optical_frame 100" />
+        <node pkg="tf" type="static_transform_publisher" name="mobile_broadcaster" args="0 0 1 0 0 0 mobile_base_link robot_base_link 100" />
+        <node pkg="tf" type="static_transform_publisher" name="world_broadcaster" args="1 2 0 0 0 0 world mobile_base_link 100" />
+    </group>
+</launch>
